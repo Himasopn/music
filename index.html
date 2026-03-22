@@ -396,7 +396,7 @@
         // ========== LOAD SONGS ==========
         async function loadSongs() {
             try {
-                const response = await fetch('songs/');
+                const response = await fetch('song/');
                 const html = await response.text();
                 
                 // Parse HTML to extract song files
@@ -415,7 +415,7 @@
                         
                         return {
                             name: decodeURIComponent(href),
-                            path: 'songs/' + decodeURIComponent(href),
+                            path: 'song/' + decodeURIComponent(href),
                             duration: 0
                         };
                     })
@@ -424,7 +424,7 @@
 
                 if (songs.length === 0) {
                     document.getElementById('playlist').innerHTML = 
-                        '<div class="loading">No songs found in songs folder</div>';
+                        '<div class="loading">No songs found in song folder</div>';
                     return;
                 }
 
@@ -433,7 +433,7 @@
             } catch (error) {
                 console.error('Error loading songs:', error);
                 document.getElementById('playlist').innerHTML = 
-                    '<div class="loading">Create a "songs" folder and add MP3 files</div>';
+                    '<div class="loading">Create a "song" folder and add MP3 files</div>';
             }
         }
 
