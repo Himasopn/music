@@ -304,7 +304,7 @@
         </div>
     </div>
 
-    <audio id="audioPlayer"></audio>
+    <audio id="audioPlayer" crossorigin="anonymous"></audio>
 
     <script>
         let songs = [];
@@ -319,6 +319,7 @@
                 const owner = 'Himasopn';
                 const repo = 'music';
                 const path = 'song';
+                const branch = 'main';
 
                 const response = await fetch(
                     `https://api.github.com/repos/${owner}/${repo}/contents/${path}`
@@ -339,7 +340,8 @@
                     })
                     .map(file => ({
                         name: file.name,
-                        path: file.download_url,
+                        // Use raw GitHub URL for direct playback
+                        path: `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}/${file.name}`,
                         duration: 0
                     }))
                     .sort((a, b) => a.name.localeCompare(b.name));
@@ -376,6 +378,8 @@
             currentIndex = index;
             const song = songs[index];
 
+            console.log('Loading song:', song.name, 'URL:', song.path);
+            
             audio.src = song.path;
             document.getElementById('songTitle').textContent = song.name.replace(/\.[^.]+$/, '');
             document.getElementById('songArtist').textContent = `${index + 1} of ${songs.length}`;
@@ -385,11 +389,17 @@
             audio.onloadedmetadata = () => {
                 songs[index].duration = Math.floor(audio.duration);
                 updateDuration();
+                console.log('Song loaded successfully');
             };
 
-            audio.onerror = () => {
-                console.error('Error loading:', song.path);
+            audio.onerror = (e) => {
+                console.error('Error loading song:', song.path, e);
+                alert('Error playing: ' + song.name + '\nTrying next song...');
                 nextSong();
+            };
+
+            audio.oncanplay = () => {
+                console.log('Song ready to play');
             };
         }
 
@@ -404,7 +414,19 @@
         }
 
         function play() {
-            audio.play();
+            if (!audio.src) {
+                alert('No song loaded');
+                return;
+            }
+            
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.error('Play error:', error);
+                    alert('Could not play song. Make sure the URL is accessible.');
+                });
+            }
+            
             isPlaying = true;
             document.getElementById('playBtn').textContent = '⏸️';
         }
